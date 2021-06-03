@@ -1,0 +1,26 @@
+.RoomRow {
+  border: 1px solid #bababa;
+  padding: 5px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  display: "Block";
+  color: "Blue";
+
+  [class~=name] {
+    margin-left: 12px;
+    font-weight: 500;
+    font-size: 24px;
+  }
+
+  [class~=playing]{
+    margin-left: 12px;
+    display: block;
+  }
+
+  [class~=btn] {
+    float: right;
+    margin-top: 12px;
+    margin-right: 12px;
+  }
+}
