@@ -1,5 +1,7 @@
 // components/RoomRow.js
-import styles from './RoomRow.module.scss'
+import Link from 'next/link';
+
+import styles from './RoomRow.module.scss';
 import Button from 'react-bootstrap/Button';
 
 const roomRowStyle = {
@@ -7,10 +9,10 @@ const roomRowStyle = {
   color: "Blue"
 };
 
-const RoomRow = () => (
+const RoomRow = (props) => (
   <div className={styles.RoomRow}>
-    <Button variant="primary"  >Join</Button>
-    <span className="name">Room Name</span>
+    <Link href={"/rooms/"+props.room.id}><Button variant="primary"  >Join</Button></Link>
+    <span className="name">{props.room.name}</span>
     <span className="playing">5 playing</span>
   </div>
 );

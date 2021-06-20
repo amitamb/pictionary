@@ -32,7 +32,7 @@ export default function Home() {
                 Join any of the following public rooms
               </h3>
               {RoomsList.map(room => (
-                <RoomRow></RoomRow>
+                <RoomRow key={room.id} room={room}></RoomRow>
               ))}
             </Col>
           </Row>
