@@ -1,0 +1,14 @@
+.roomInfo {
+  padding-top: 15px;
+  padding-bottom: 15px;
+
+  [class~='name'] {
+    float: Left;
+    font-weight: Bold;
+  }
+
+  [class~='playing'] {
+    float: right;
+    color: Blue;
+  }
+}

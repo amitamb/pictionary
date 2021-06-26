@@ -9,7 +9,19 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 
-export default function Home() {
+import { useState, useEffect } from 'react';
+import db from '../support/firebase';
+
+function Home({ rooms }) {
+
+  const fetchRooms = async () => {
+    
+  };
+
+  useEffect(() => {
+    fetchRooms();
+  }, []);
+
   return (
     <Layout>
       <Row className="justify-content-md-center mt-4">
@@ -31,7 +43,7 @@ export default function Home() {
               <h3 className="text-center">
                 Join any of the following public rooms
               </h3>
-              {RoomsList.map(room => (
+              {rooms.map(room => (
                 <RoomRow key={room.id} room={room}></RoomRow>
               ))}
             </Col>
@@ -41,3 +53,23 @@ export default function Home() {
     </Layout>
   )
 }
+
+// This gets called on every request
+export async function getServerSideProps() {
+  const response=db.ref().child('rooms');
+  const data=await response.get();
+
+  console.log(data.val());
+
+  let roomsObj = data.val();
+  let rooms = [];
+
+  for ( let id in roomsObj ) {
+    rooms.push(roomsObj[id]);
+  }
+
+  // Pass data to the page via props
+  return { props: { rooms: rooms } }
+}
+
+export default Home;

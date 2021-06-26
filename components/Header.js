@@ -26,11 +26,15 @@ const Header = () => {
   return <>
     <Navbar bg="light" expand="sm">
       <Container>
-        <Navbar.Brand href="/">Pictionary</Navbar.Brand>
+        <Link href="/">
+          <Navbar.Brand href="/">Pictionary</Navbar.Brand>
+        </Link>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ml-auto">
-            <Nav.Link href="/change_username">Hello <b>{ctx.user.username}</b> &nbsp;<FaEdit style={{ verticalAlign: 'baseline' }} /></Nav.Link>
+            <Link href="/change_username">
+              <Nav.Link href="/change_username">Hello <b>{ctx.user.username}</b> &nbsp;<FaEdit style={{ verticalAlign: 'baseline' }} /></Nav.Link>
+            </Link>
           </Nav>
         </Navbar.Collapse>
 
