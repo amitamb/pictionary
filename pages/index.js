@@ -59,7 +59,7 @@ export async function getServerSideProps() {
   const response=db.ref().child('rooms');
   const data=await response.get();
 
-  console.log(data.val());
+  // console.log(data.val());
 
   let roomsObj = data.val();
   let rooms = [];

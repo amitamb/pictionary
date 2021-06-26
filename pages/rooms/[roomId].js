@@ -14,29 +14,36 @@ import classes from "./[roomId].module.scss";
 function Room({ room }) {
 
   const ctx = useContext(AuthContext);
-  const [ players, setPlayers ] = useState([]);
+  const [ players, setPlayers ] = useState(Object.values(room.playing || {}));
 
   room.playing = room.playing || {};
 
   useEffect(() => {
+
+    let playingListRef = db.ref(`rooms/room_${room.id}/playing`);
+    playingListRef.on('value', (snapshot) => {
+      const data = snapshot.val();
+      setPlayers(Object.values(data || {}));
+    });
+
     // Set current user as logged in
     // check if user already logged in
-    let foundLoggedIn = false;
-    Object.values(room.playing).find((loggedInUser) => {
-      if ( loggedInUser.id == ctx.user.id ) {
-        foundLoggedIn = true;
-      }
-    })
+    let foundLoggedIn = !!room.playing[ctx.user.id];
     if (!foundLoggedIn) {
       console.log("Log the user in!!");
-      let playingListRef = db.ref(`rooms/room_${room.id}/playing`);
-      let newPlayingUserRef = playingListRef.push();
+      // let playingListRef = db.ref(`rooms/room_${room.id}/playing`);
+      // let newPlayingUserRef = playingListRef.push();
+      let newPlayingUserRef = db.ref(`rooms/room_${room.id}/playing/${ctx.user.id}`);
       newPlayingUserRef.set({
         ...ctx.user,
-        interactedAt: 'somedatetime'
+        currentPoints: 0,
+        lastInteractedAt: +new Date()
       });
     }
-    setPlayers(Object.values(room.playing));
+  }, []);
+
+  useEffect(() => {
+    
   }, []);
 
   return (
@@ -50,8 +57,14 @@ function Room({ room }) {
           <CanvasDraw canvasWidth={'100%'} canvasHeight={547.5} brushRadius={6} lazyRadius={0} />
         </Col>
         <Col>
-          <PlayersList players={players}></PlayersList>
-          <ChatBox></ChatBox>
+          <div className="d-flex flex-column" style={{ height: '100%' }}>
+            <div className={classes.PlayersListContainer}>
+              <PlayersList players={players}></PlayersList>
+            </div>
+            <div className={classes.ChatBoxContainer}>
+              <ChatBox room={room}></ChatBox>
+            </div>
+          </div>
         </Col>
       </Row>
     </Layout>

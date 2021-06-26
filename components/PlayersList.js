@@ -1,8 +1,9 @@
 // components/PlayersList.js
 import Link from 'next/link';
 
-import styles from './PlayersList.module.scss';
+import classes from './PlayersList.module.scss';
 import Button from 'react-bootstrap/Button';
+import PlayerRow from './PlayerRow';
 import { Component } from 'react';
 
 const chatBoxStyle = {
@@ -12,13 +13,11 @@ const chatBoxStyle = {
 
 const PlayersList = (props) => {
   return (
-    <>
+    <div className={classes.PlayersList}>
       {props.players.map((player) => {
-        return <div>
-          {player.username}
-        </div>
+        return <PlayerRow key={player.id} player={player} />
       })}
-    </>
+    </div>
   );
 };
 

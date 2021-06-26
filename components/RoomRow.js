@@ -9,11 +9,11 @@ const roomRowStyle = {
   color: "Blue"
 };
 
-const RoomRow = (props) => (
+const RoomRow = ({ room }) => (
   <div className={styles.RoomRow}>
-    <Link href={"/rooms/"+props.room.id}><Button variant="primary"  >Join</Button></Link>
-    <span className="name">{props.room.name}</span>
-    <span className="playing">5 playing</span>
+    <Link href={"/rooms/"+room.id}><Button variant="primary"  >Join</Button></Link>
+    <span className="name">{room.name}</span>
+    <span className="playing">{Object.values(room.playing || {}).length} playing</span>
   </div>
 );
 

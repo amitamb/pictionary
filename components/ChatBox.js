@@ -1,33 +1,44 @@
 // components/ChatBox.js
 import Link from 'next/link';
+import { v4 as uuidv4 } from 'uuid';
 
-import styles from './ChatBox.module.scss';
+import AuthContext from '../store/auth-context';
+import classes from './ChatBox.module.scss';
 import Button from 'react-bootstrap/Button';
-import { Component } from 'react';
+import { useContext, useState, useEffect } from 'react';
+import ChatInput from './ChatInput';
+import ChatMessage from './ChatMessage';
 
-const chatBoxStyle = {
-  display: "Block",
-  background: "#ddd",
-};
+const ChatBox = ({ room }) => {
 
-// const RoomRow = (props) => (
-//   <div className={styles.chatBoxStyle}>
-//     Show Chats here
-//   </div>
-// );
+  const ctx = useContext(AuthContext);
+  const [ messages, setMessages ] = useState(room.messages || []);
 
-class RoomRow extends Component {
-  constructor(props) {
-    super(props);
-  }
+  useEffect(() => {
 
-  render() {
-    return (
-      <div className={styles.chatBoxStyle}>
-        Show Chats here
+  }, []);
+
+  const messageSubmitHandler = (messageText) => {
+    let newMessage ={
+      from: ctx.user.username,
+      id: uuidv4(),
+      text: messageText
+    }
+    let newMessages = [...messages, newMessage];
+    setMessages(newMessages);
+    console.log(newMessages);
+  };
+
+  return (
+    <div className={classes.ChatBox}>
+      <div className={classes.MessagesContainer}>
+        {messages.map(message => (
+          <ChatMessage key={message.id} message={message} />
+        ))}
       </div>
-    );
-  }
+      <ChatInput onMessageSubmit={messageSubmitHandler} />
+    </div>
+  );
 }
 
-export default RoomRow;
+export default ChatBox;

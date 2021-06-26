@@ -12,3 +12,16 @@
     color: Blue;
   }
 }
+
+.PlayersListContainer {
+  font-size: 13px;
+  min-height: 200px;
+  flex-grow: 3;
+  padding-bottom: 10px;
+}
+
+.ChatBoxContainer {
+  font-size: 13px;
+  text-align: left;
+  flex-grow: 7;
+}

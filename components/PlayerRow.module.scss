@@ -1,0 +1,19 @@
+.PlayerRow {
+  text-align: left;
+  margin-bottom: 5px;
+  margin-top: 5px;
+
+  [class~=name] {
+    text-align: left;
+  }
+
+  [class~=points]{
+    text-align: left;
+    float: right;
+    color: #888;
+  }
+
+  [class~=status] {
+    text-align: left;
+  }
+}
