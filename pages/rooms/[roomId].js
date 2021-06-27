@@ -2,7 +2,7 @@ import Layout from "../../components/Layout";
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import CanvasDraw from "react-canvas-draw"
-import ChatBox from "../../components/ChatBox";
+// import ChatBox from "../../components/ChatBox";
 import PlayersList from "../../components/PlayersList";
 import AuthContext from '../../store/auth-context';
 import { useContext, useState, useEffect } from 'react';
@@ -10,6 +10,10 @@ import { useRouter } from 'next/router';
 import db from '../../support/firebase';
 
 import classes from "./[roomId].module.scss";
+
+import dynamic from 'next/dynamic';
+
+const ChatBox = dynamic(() => import("../../components/ChatBox"), { ssr: false });
 
 function Room({ room }) {
 
