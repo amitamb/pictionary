@@ -13,6 +13,7 @@ import classes from "./[roomId].module.scss";
 
 import dynamic from 'next/dynamic';
 
+
 const ChatBox = dynamic(() => import("../../components/ChatBox"), { ssr: false });
 
 function Room({ room }) {
