@@ -13,7 +13,9 @@ import classes from "./[roomId].module.scss";
 
 import dynamic from 'next/dynamic';
 
+import DrawingBoard from '../../components/DrawingBoard';
 
+// const DrawingBoard = dynamic(() => import("../../components/DrawingBoard"), { ssr: false });
 const ChatBox = dynamic(() => import("../../components/ChatBox"), { ssr: false });
 
 function Room({ room }) {
@@ -59,7 +61,8 @@ function Room({ room }) {
           <span className='playing'>{players.length} players playing</span>
         </Col>
         <Col xs={8}>
-          <CanvasDraw canvasWidth={'100%'} canvasHeight={547.5} brushRadius={6} lazyRadius={0} />
+          {/* <CanvasDraw canvasWidth={'100%'} canvasHeight={547.5} brushRadius={6} lazyRadius={0} /> */}
+          <DrawingBoard />
         </Col>
         <Col>
           <div className="d-flex flex-column" style={{ height: '100%' }}>
