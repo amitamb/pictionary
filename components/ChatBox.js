@@ -35,7 +35,7 @@ const ChatBox = ({ room }) => {
   const messageSubmitHandler = (messageText) => {
     let newMessage ={
       from: ctx.user.username,
-      // id: uuidv4(),
+      id: uuidv4(),
       text: messageText
     }
     // let newMessages = [...messages, newMessage];

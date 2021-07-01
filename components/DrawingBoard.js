@@ -1,40 +1,30 @@
 // components/DrawingBoard.js
 import React from 'react';
 import { render } from 'react-dom';
-// import { Stage, Layer, Line, Text } from 'react-konva';
-
-// import dynamic from 'next/dynamic';
-
-// const { Stage, Layer, Line, Text } = dynamic(() => import("react-konva"), { ssr: false });
-
-// let Stage, Layer, Line, Text;
+// import db from '../../support/firebase';
 import importKonvaNamed from '../support/importKonvaNamed';
 
 const { Stage, Layer, Line, Text } = importKonvaNamed([ 'Stage', 'Layer', 'Line', 'Text' ]);
 
-// const konva = {};
-// const a = dynamic(
-//   () => {
-//     import('react-konva').then((mod) => {
-//       konva = mod;
-//     })
-//   },
-//   { ssr: false }
-// )
-
 import classes from './DrawingBoard.module.scss';
 import Button from 'react-bootstrap/Button';
 
-function DrawingBoard({ message }) {
+function DrawingBoard({ canDraw, board = {}, onChange }) {
+
+  console.log("Board");
+  console.log(board);
 
   const [tool, setTool] = React.useState('pen');
-  const [lines, setLines] = React.useState([]);
+  // const [lines, setLines] = React.useState(board?.lines || []);
+  let lines = board.lines || [];
   const isDrawing = React.useRef(false);
+  const stage = React.useRef();
 
   const handleMouseDown = (e) => {
     isDrawing.current = true;
     const pos = e.target.getStage().getPointerPosition();
-    setLines([...lines, { tool, points: [pos.x, pos.y] }]);
+    // setLines([...lines, { tool, points: [pos.x, pos.y] }]);
+    onChange([...lines, { tool, points: [pos.x, pos.y] }]);
   };
 
   const handleMouseMove = (e) => {
@@ -50,19 +40,33 @@ function DrawingBoard({ message }) {
 
     // replace last
     lines.splice(lines.length - 1, 1, lastLine);
-    setLines(lines.concat());
+    // setLines(lines.concat());
+    onChange(lines.concat());
   };
 
   const handleMouseUp = () => {
     isDrawing.current = false;
   };
 
-  // console.log(k);
+  const handleClear = () => {
+    // setLines([]);
+    onChange([]);
+  };
+
+  const getCursor = () => {
+    if ( tool == 'pen' ) {
+      return "url('/brush.cur'), auto";
+    }
+    else {
+      return "url('/erasor.cur'), auto";
+    }
+  };
 
   return (
-    <div>
+    <div style={ { cursor: getCursor() } }>
       <Stage
-        width={547.5}
+        ref={stage}
+        width={730}
         height={547.5}
         onMouseDown={handleMouseDown}
         onMousemove={handleMouseMove}
@@ -74,8 +78,8 @@ function DrawingBoard({ message }) {
             <Line
               key={i}
               points={line.points}
-              stroke="#df4b26"
-              strokeWidth={5}
+              stroke="#010101"
+              strokeWidth={10}
               tension={0.5}
               lineCap="round"
               globalCompositeOperation={
@@ -85,7 +89,9 @@ function DrawingBoard({ message }) {
           ))}
         </Layer>
       </Stage>
+      <Button className="mr-3" onClick={handleClear} >Clear</Button>
       <select
+        className='mt-3'
         value={tool}
         onChange={(e) => {
           setTool(e.target.value);
