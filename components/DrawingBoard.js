@@ -3,16 +3,12 @@ import React from 'react';
 import { render } from 'react-dom';
 // import db from '../../support/firebase';
 import importKonvaNamed from '../support/importKonvaNamed';
-
 const { Stage, Layer, Line, Text } = importKonvaNamed([ 'Stage', 'Layer', 'Line', 'Text' ]);
-
 import classes from './DrawingBoard.module.scss';
 import Button from 'react-bootstrap/Button';
+import ToolboxButton from './ToolboxButton';
 
 function DrawingBoard({ canDraw, board = {}, onChange }) {
-
-  console.log("Board");
-  console.log(board);
 
   const [tool, setTool] = React.useState('pen');
   // const [lines, setLines] = React.useState(board?.lines || []);
@@ -89,17 +85,12 @@ function DrawingBoard({ canDraw, board = {}, onChange }) {
           ))}
         </Layer>
       </Stage>
+
       <Button className="mr-3" onClick={handleClear} >Clear</Button>
-      <select
-        className='mt-3'
-        value={tool}
-        onChange={(e) => {
-          setTool(e.target.value);
-        }}
-      >
-        <option value="pen">Pen</option>
-        <option value="eraser">Eraser</option>
-      </select>
+      
+      <ToolboxButton onSelected={setTool} buttonName={'pen'} isSelected={tool == 'pen'} ></ToolboxButton>
+      <ToolboxButton onSelected={setTool} buttonName={'eraser'} isSelected={tool == 'eraser'} ></ToolboxButton>
+      
     </div>
   );
 }

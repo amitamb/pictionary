@@ -11,7 +11,7 @@ import ChatMessage from './ChatMessage';
 
 import { useChannel } from "../hooks/AblyReactEffect";
 
-const ChatBox = ({ room }) => {
+const ChatBox = ({ room, onMessageSent }) => {
 
   const ctx = useContext(AuthContext);
   const [ messages, setMessages ] = useState(room.messages || []);
@@ -38,12 +38,12 @@ const ChatBox = ({ room }) => {
       id: uuidv4(),
       text: messageText
     }
-    // let newMessages = [...messages, newMessage];
-    // setMessages(newMessages);
 
-    channel.publish({ name: "chat-message", data: newMessage });
+    let messageData = { name: "chat-message", data: newMessage };
+    channel.publish(messageData);
 
-    // console.log(newMessages);
+    onMessageSent && onMessageSent(messageData);
+
   };
 
   return (

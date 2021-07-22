@@ -1,8 +1,8 @@
 import Layout from "../../components/Layout";
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import CanvasDraw from "react-canvas-draw"
-// import ChatBox from "../../components/ChatBox";
+// import CanvasDraw from "react-canvas-draw"
+import { DateTime } from 'luxon';
 import PlayersList from "../../components/PlayersList";
 import AuthContext from '../../store/auth-context';
 import { useContext, useState, useEffect, useRef } from 'react';
@@ -18,79 +18,161 @@ import DrawingBoard from '../../components/DrawingBoard';
 // const DrawingBoard = dynamic(() => import("../../components/DrawingBoard"), { ssr: false });
 const ChatBox = dynamic(() => import("../../components/ChatBox"), { ssr: false });
 
-function Room({ room }) {
+const isPlayerAlive = (player) => {
+  if ( !player.lastHearthBeatAt || !player.lastInteractedAt ) {
+    return false;
+  }
+  let lastHearthBeatAt = Math.max(player.lastHearthBeatAt, player.lastInteractedAt);
+  lastHearthBeatAt = DateTime.fromMillis(lastHearthBeatAt);
+  lastHearthBeatAt.plus({ seconds: 60 });
+  if ( lastHearthBeatAt < DateTime.now() ) {
+    return false;
+  }
+};
 
-  console.log(room);
+const isPlayerKickable = (player) => {
+  if ( !player.lastHearthBeatAt || !player.lastInteractedAt ) {
+    return false;
+  }
+  if ( !isPlayerAlive(player) ) {
+    return false;
+  }
+  let lastInteractedAt = DateTime.fromMillis(player.lastInteractedAt);
+  lastInteractedAt.plus({ minutes: 4 });
+  if ( lastInteractedAt < DateTime.now() ) {
+    return false;
+  }
+  return true;
+};
+
+const isPlayerActive = (player) => {
+  if ( !player.lastHearthBeatAt || !player.lastInteractedAt ) {
+    return false;
+  }
+  if ( !isPlayerAlive(player) ) {
+    return false;
+  }
+  let lastInteractedAt = DateTime.fromMillis(player.lastInteractedAt);
+  lastInteractedAt.plus({ minutes: 3 });
+  if ( lastInteractedAt < DateTime.now() ) {
+    return false;
+  }
+  return true;
+};
+
+const getPlayerState = (player) => {
+  if ( !player.lastHearthBeatAt || !player.lastInteractedAt ) {
+    return 'dead';
+  }
+  if ( isPlayerAlive(player) ) {
+    return 'dead';
+  }
+  if ( isPlayerKickable(player) ) {
+    return 'kicked';
+  }
+  if ( isPlayerKickable(player) ) {
+    return 'kicked';
+  }
+};
+
+function Room({ room }) {
 
   const ctx = useContext(AuthContext);
   const [ players, setPlayers ] = useState(Object.values(room.playing || {}));
   const [ current, setCurrent ] = useState(room.current || {});
 
+  const playingListRef = useRef(db.ref(`rooms/room_${room.id}/playing`));
   const currentRef = useRef(db.ref(`rooms/room_${room.id}/current`));
 
   room.playing = room.playing || {};
 
   useEffect(() => {
 
-    let playingListRef = db.ref(`rooms/room_${room.id}/playing`);
-    playingListRef.on('value', (snapshot) => {
+    // let playingListRef = db.ref(`rooms/room_${room.id}/playing`);
+    playingListRef.current.on('value', (snapshot) => {
       const data = snapshot.val();
       setPlayers(Object.values(data || {}));
     });
-
-    // Set current user as logged in
-    // check if user already logged in
-    let foundLoggedIn = !!room.playing[ctx.user.id];
-    if (!foundLoggedIn) {
-      let newPlayingUserRef = db.ref(`rooms/room_${room.id}/playing/${ctx.user.id}`);
-      newPlayingUserRef.set({
-        ...ctx.user,
-        currentPoints: 0,
-        lastInteractedAt: +new Date()
-      });
-    }
-
-    
-  }, [room.id]);
-
-  useEffect(() => {
-
-    let currentRef1 = db.ref(`rooms/room_${room.id}/current`);
-    currentRef1.on('value', (snapshot) => {
-      const data = snapshot.val();
-      // setPlayers(Object.values(data || {}));
-      setCurrent(data);
-      console.log("value");
-      console.log(data);
-    });
-
-    // currentRef.current = db.ref(`rooms/room_${room.id}/current`);
-    // currentRef.current.on('value', (snapshot) => {
-    //   const data = snapshot.val();
-    //   // setPlayers(Object.values(data || {}));
-    //   setCurrent(data);
-    // });
-
-    // currentRef.current.on('child_changed', (snapshot) => {
-    //   const data = snapshot.val();
-    //   // setPlayers(Object.values(data || {}));
-    //   setCurrent(data);
-    // });
   
   }, [room.id]);
 
   useEffect(() => {
 
-    if ( !current?.player && players.length > 0 ) {
-      // if nobody is playing
+    // Set current user as logged in
+    // check if user already logged in
+    let foundLoggedIn = !!players.find(player => player.id === ctx.user.id);
+    if (!foundLoggedIn) {
+      let newPlayingUserRef = db.ref(`rooms/room_${room.id}/playing/${ctx.user.id}`);
+      newPlayingUserRef.set({
+        ...ctx.user,
+        currentPoints: 0,
+        lastInteractedAt: +new Date(),
+        lastHearthBeatAt: +new Date(),
+      });
+    }
+    
+  }, [players]);
+
+  useEffect(() => {
+
+    currentRef.current.on('value', (snapshot) => {
+      const data = snapshot.val();
+      setCurrent(data);
+    });
+  
+  }, [room.id]);
+
+
+  const cleanPlayersList = () => {
+    // kick out dead/kickable players
+    players.forEach((player) => {
+      if ( player.id !== ctx.user.id && !isPlayerKickable(player) ) {
+        playingListRef.current.child(`${player.id}`).remove();
+      }
+    });
+  };
+
+  const handleCurrentPlayerState = () => {
+
+    const graceSeconds = 5;
+
+    // kick out dead/kickable players
+    players.forEach((player) => {
+      
+      if ( player.id !== current.player.id ) {
+        // playingListRef.current.child(`${player.id}`).remove();
+        // if ( current.player. )
+        
+      }
+    });
+  };
+
+  useEffect(() => {
+
+    // clear current player if only one/no player remains
+    if ( current?.player && players.length <= 1 ) {
+      let newCurrent = {
+        player: null,
+        startedAt: null,
+        board: {
+          lines: []
+        }
+      };
+
+      // setCurrent(newCurrent);
+
+      currentRef?.current?.set(newCurrent);
+    }
+    else if ( !current?.player && players.length > 1 ) {
+      // if nobody is playing currently
       // get first active player from the players list
-      // TODO: Get first active
+      let firstActivePlayer = players.find(isPlayerActive);
 
-      // players[0]
-      // current.player = ctx.user.id;
-      // current.startedAt =  +new Date();
+      // cleanPlayersList();
 
-      let firstActivePlayer = players[0];
+      if (!firstActivePlayer) {
+        firstActivePlayer = ctx.user;
+      }
 
       let newCurrent = {
         ...current,
@@ -101,13 +183,33 @@ function Room({ room }) {
         }
       };
 
-      setCurrent(newCurrent);
+      // setCurrent(newCurrent);
 
       // let currentRef = db.ref(`rooms/room_${room.id}/current`);
-      currentRef.current.set(newCurrent);
+      currentRef?.current?.set(newCurrent);
     }
     
-  }, [current?.player, players]);
+  }, [current?.player, players.length]);
+
+  useEffect(() => {
+    let heartbeatIntervalId = setInterval(() => {
+
+      // console.log("Using ctx");
+      // console.log(ctx);
+      // console.log(ctx.user.id);
+
+      let lastHearthBeatAt = playingListRef.current.child(`${ctx.user.id}/lastHearthBeatAt`);
+      lastHearthBeatAt.set(+new Date());
+      cleanPlayersList();
+    }, 30000);
+
+    cleanPlayersList();
+
+    // Send heartbeatsat regular intervals
+    return () =>{
+      clearInterval(heartbeatIntervalId);
+    };
+  }, []);
 
   const handleBoardChange = (newLines) => {
     // console.log(currentRef.current);
@@ -120,18 +222,24 @@ function Room({ room }) {
     currentRef.current.child('board/lines').set(newLines);
   }
 
-  console.log("Current");
-  console.log(current);
+  const handleMessageSent = (messageData) => {
+    // let messageText = messageData.data;
+    let lastInteractedAt = playingListRef.current.child(`${ctx.user.id}/lastInteractedAt`);
+    lastInteractedAt.set(+new Date());
+  };
 
   return (
     <Layout>
       <Row>
         <Col xs={12} className={classes.roomInfo}>
           <span className='name'>{room.name}</span>
-          <span className='playing'>{players.length} players playing</span>
+          <span>&nbsp;{current?.player?.username}</span>
+          <span className='playing'>
+            { players.length <= 1 && <span>Not enough players</span> }
+            { players.length > 1 && <span>{players.length} players playing</span> }
+          </span>
         </Col>
         <Col xs={8}>
-          {/* <CanvasDraw canvasWidth={'100%'} canvasHeight={547.5} brushRadius={6} lazyRadius={0} /> */}
           <DrawingBoard canDraw={current?.player?.id == ctx.user.id} board={current?.board} onChange={handleBoardChange} />
         </Col>
         <Col>
@@ -140,7 +248,7 @@ function Room({ room }) {
               <PlayersList players={players}></PlayersList>
             </div>
             <div className={classes.ChatBoxContainer}>
-              <ChatBox room={room}></ChatBox>
+              <ChatBox room={room} onMessageSent={handleMessageSent}></ChatBox>
             </div>
           </div>
         </Col>

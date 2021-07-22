@@ -5,7 +5,6 @@ import classes from './ChatMessage.module.scss';
 import Button from 'react-bootstrap/Button';
 
 function ChatMessage({ message }) {
-  console.log(message);
   return (
     <div className={classes.ChatMessage}>
       <span className="from">

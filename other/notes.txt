@@ -1,0 +1,16 @@
+1. Consider lastInteractedAt as a heartbeat if it is later than a heartbeat
+2. 60 seconds after the last heartbeat remove the user from the players list
+3. 3 minutes after the last interaction consider user as inactive except for the current player
+4. Show the a model with message that they need to keep guessing to remain in the room
+5. 4 minutes after the last interaction kick the user out of the room except for the current player
+
+
+1. Whenever a player gets nominated (even by self) as a current player they will see a screen with 3 words
+2. 3 words would be selected from a corpora of common words
+3. Player has to select the word within 10 seconds
+4. Once they select the word in 10 seconds, the wordwill be added to current hash
+5. Use simple encoding to encode the word
+6. After the player selects the word. They will get 70 seconds to draw the word
+7. If any player is found to be out of bound by 5 seconds during above process they will be considered inactive
+
+1. Fix the toolboxat the bottom
