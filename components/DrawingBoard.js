@@ -1,7 +1,6 @@
 // components/DrawingBoard.js
 import React from 'react';
 import { render } from 'react-dom';
-// import db from '../../support/firebase';
 import importKonvaNamed from '../support/importKonvaNamed';
 const { Stage, Layer, Line, Text } = importKonvaNamed([ 'Stage', 'Layer', 'Line', 'Text' ]);
 import classes from './DrawingBoard.module.scss';
@@ -17,6 +16,8 @@ function DrawingBoard({ canDraw, board = {}, onChange }) {
   const stage = React.useRef();
 
   const handleMouseDown = (e) => {
+    if ( !canDraw ) return;
+
     isDrawing.current = true;
     const pos = e.target.getStage().getPointerPosition();
     // setLines([...lines, { tool, points: [pos.x, pos.y] }]);
@@ -24,32 +25,37 @@ function DrawingBoard({ canDraw, board = {}, onChange }) {
   };
 
   const handleMouseMove = (e) => {
+    if ( !canDraw ) return;
+
     // no drawing - skipping
     if (!isDrawing.current) {
       return;
     }
+
     const stage = e.target.getStage();
     const point = stage.getPointerPosition();
     let lastLine = lines[lines.length - 1];
+
     // add point
     lastLine.points = lastLine.points.concat([point.x, point.y]);
 
     // replace last
     lines.splice(lines.length - 1, 1, lastLine);
-    // setLines(lines.concat());
     onChange(lines.concat());
   };
 
   const handleMouseUp = () => {
+    if ( !canDraw ) return;
+
     isDrawing.current = false;
   };
 
   const handleClear = () => {
-    // setLines([]);
     onChange([]);
   };
 
   const getCursor = () => {
+    if ( !canDraw ) return "auto";
     if ( tool == 'pen' ) {
       return "url('/brush.cur'), auto";
     }
@@ -69,7 +75,8 @@ function DrawingBoard({ canDraw, board = {}, onChange }) {
         onMouseup={handleMouseUp}
       >
         <Layer>
-          <Text text="Just start drawing" x={5} y={30} />
+          { canDraw && <Text text="Just start drawing" x={5} y={30} /> }
+          { !canDraw && <Text text="Wait for others" x={5} y={30} /> }
           {lines.map((line, i) => (
             <Line
               key={i}
@@ -86,10 +93,11 @@ function DrawingBoard({ canDraw, board = {}, onChange }) {
         </Layer>
       </Stage>
 
-      <Button className="mr-3" onClick={handleClear} >Clear</Button>
-      
-      <ToolboxButton onSelected={setTool} buttonName={'pen'} isSelected={tool == 'pen'} ></ToolboxButton>
-      <ToolboxButton onSelected={setTool} buttonName={'eraser'} isSelected={tool == 'eraser'} ></ToolboxButton>
+      <>
+        <Button className="mr-3" onClick={handleClear} disabled={!canDraw} >Clear</Button>
+        <ToolboxButton onSelected={setTool} buttonName={'pen'} isSelected={tool == 'pen'} isDisabled={!canDraw}></ToolboxButton>
+        <ToolboxButton onSelected={setTool} buttonName={'eraser'} isSelected={tool == 'eraser'} isDisabled={!canDraw} ></ToolboxButton>
+      </>
       
     </div>
   );

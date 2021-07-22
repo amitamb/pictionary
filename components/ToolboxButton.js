@@ -8,14 +8,14 @@ const ButtonIconMap = {
   'eraser': FaEraser,
 }
 
-function ToolboxButton({ onSelected, buttonName, isSelected }) {
+function ToolboxButton({ onSelected, buttonName, isSelected, isDisabled }) {
 
   let ButtonIcon = ButtonIconMap[buttonName];
 
   return (
     <Button variant={isSelected ? 'dark' : 'light'} className={classes.button} onClick={(e) => {
       onSelected(buttonName);
-    }} >
+    }} disabled={isDisabled}>
     <ButtonIcon style={{ verticalAlign: 'baseline' }} />
   </Button>
   );
