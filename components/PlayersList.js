@@ -12,6 +12,9 @@ const chatBoxStyle = {
 };
 
 const PlayersList = (props) => {
+
+  // console.log(props.players);
+
   return (
     <div className={classes.PlayersList}>
       {props.players.map((player) => {

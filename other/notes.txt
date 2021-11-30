@@ -1,8 +1,8 @@
-1. Consider lastInteractedAt as a heartbeat if it is later than a heartbeat
-2. 60 seconds after the last heartbeat remove the user from the players list
-3. 3 minutes after the last interaction consider user as inactive except for the current player
-4. Show the a model with message that they need to keep guessing to remain in the room
-5. 4 minutes after the last interaction kick the user out of the room except for the current player
+> 1. Consider lastInteractedAt as a heartbeat if it is later than a heartbeat
+> 2. 60 seconds after the last heartbeat remove the user from the players list
+> 3. 3 minutes after the last interaction consider user as inactive except for the current player
+> 4. Show the a model with message that they need to keep guessing to remain in the room
+> 5. 4 minutes after the last interaction kick the user out of the room except for the current player
 
 
 1. Whenever a player gets nominated (even by self) as a current player they will see a screen with 3 words
@@ -13,4 +13,133 @@
 6. After the player selects the word. They will get 70 seconds to draw the word
 7. If any player is found to be out of bound by 5 seconds during above process they will be considered inactive
 
-1. Fix the toolboxat the bottom
+> 1. Improve the toolbox at the bottom
+> 2. Don't show just start drawing for non-drawable user
+
+Following will be the flow for bord page
+
+Initial state of the board would be "Empty" with 0 players present
+
+1. User A will join(/reactivates)
+
+The board will change to "Waiting". There won't be much change for the board except that there would be a message, "Waiting for players".
+
+2. User B joins(/reactivates).
+
+The board will change to "Active". As the state is changing to active, the first user in the players will be selected for drawing.
+
+Once active, current player position will be set. And for current player, states will be determined.
+
+Initially, current player state will be "Selecting".
+
+Once the playing starts, a user will get a screen to select a word for the first 20 seconds.
+
+At the end of which, the selected word will be set, and current current player state will be "Drawing".
+
+For non-current players,
+
+ - when current_player state is "Selecting", they will be shown a message, "Player is selecting the word"
+ - when current_player state is "Drawing",
+    they will be shown a message, "Guess the word" and
+    whatever the current_player is drawing would be shown on the screen.
+    they will also be able to ttype their guesses
+
+This state will last till following conditions are met.
+
+1. All non-current players guess the word correctly.
+2. Or 60 seconds are elapsed since last state change i.e. drawing started.
+
+Once the current_player state changes to "Complete"
+
+The next player in the list of players will be chosen as current_player and the process will continue.
+
+After each update from server, Housekeeping function will be called by the first active user in the playing list.
+
+While Housekeeping for the first player's heartbeat will be perfomed by every player.
+It will deactivate housekeeper if he did not send heartbeat every HEART_BEAT_INTERVAL * 2 seconds.
+
+The Housekeeping will do following things.
+
+Check to make sure, current player is active. If not, select next player or change board state.
+If current player's state is still "Selecting" after 20 + GRACE_PERIOD seconds, change current_player.
+Remove players not sending hertbeat after 60 seconds and handle if they are current player.
+
+{
+  "rooms" : {
+    "room_1" : {
+      "color" : "Blue",
+      "state": "Empty/Waiting/Active", // virual or inferred
+      "current" : {
+        "player" : {
+          "id" : "29fbd263-e8b1-4aa2-9392-1b2aa0406520",
+          "username" : "Guest-Walrus-0"
+        },
+        "state": "Selecting/Drawing/Complete", // actual
+        "lastStateChangeAt": 1637350161668
+        "startedAt" : 1637350161668
+      },
+      "id" : 1,
+      "name" : "Blue Team",
+      "playing" : {
+        "29fbd263-e8b1-4aa2-9392-1b2aa0406520" : {
+          "currentPoints" : 0,
+          "id" : "29fbd263-e8b1-4aa2-9392-1b2aa0406520",
+          "lastHearthBeatAt" : 1637353432112,
+          "lastInteractedAt" : 1637353432112,
+          "username" : "Guest-Walrus-0"
+        },
+        "67719d62-d02f-40ff-a292-c8849cbd90f4" : {
+          "currentPoints" : 0,
+          "id" : "67719d62-d02f-40ff-a292-c8849cbd90f4",
+          "lastHearthBeatAt" : 1637353471017,
+          "lastInteractedAt" : 1637353471017,
+          "username" : "Whale15"
+        },
+        "undefined" : {
+          "lastHearthBeatAt" : 1637353470941
+        }
+      }
+    },
+    "room_2" : {
+      "color" : "Red",
+      "id" : 2,
+      "name" : "Red Team",
+      "playing" : {
+        "628c6f28-d61f-4f95-8cb1-c6209bf25e3c" : {
+          "currentPoints" : 0,
+          "id" : "628c6f28-d61f-4f95-8cb1-c6209bf25e3c",
+          "lastHearthBeatAt" : 1634311667308,
+          "lastInteractedAt" : 1634311667308,
+          "username" : "Guest-Beetle-6"
+        }
+      }
+    },
+    "room_3" : {
+      "color" : "Green",
+      "id" : 3,
+      "name" : "Green Team",
+      "playing" : {
+        "628c6f28-d61f-4f95-8cb1-c6209bf25e3c" : {
+          "currentPoints" : 0,
+          "id" : "628c6f28-d61f-4f95-8cb1-c6209bf25e3c",
+          "lastHearthBeatAt" : 1634311686782,
+          "lastInteractedAt" : 1634311686782,
+          "username" : "Guest-Beetle-6"
+        }
+      }
+    },
+    "room_4" : {
+      "color" : "Yellow",
+      "id" : 4,
+      "name" : "Yellow Team",
+      "playing" : {
+        "5d4ed26e-f15b-4f0c-bb83-d01eaf712232" : {
+          "currentPoints" : 0,
+          "id" : "5d4ed26e-f15b-4f0c-bb83-d01eaf712232",
+          "lastInteractedAt" : 1624825754261,
+          "username" : "Guest-Cobra-3"
+        }
+      }
+    }
+  }
+}

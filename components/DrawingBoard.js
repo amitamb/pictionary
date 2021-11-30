@@ -7,6 +7,8 @@ import classes from './DrawingBoard.module.scss';
 import Button from 'react-bootstrap/Button';
 import ToolboxButton from './ToolboxButton';
 
+// const NonSSRButton = dynamic(() => import(Button) from 'react-bootstrap/Button', { ssr: false });
+
 function DrawingBoard({ canDraw, board = {}, onChange }) {
 
   const [tool, setTool] = React.useState('pen');

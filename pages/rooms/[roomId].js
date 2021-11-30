@@ -13,28 +13,31 @@ import classes from "./[roomId].module.scss";
 
 import dynamic from 'next/dynamic';
 
-import DrawingBoard from '../../components/DrawingBoard';
+import RoomClass from '../../support/room';
+import Player from '../../support/player';
 
-// const DrawingBoard = dynamic(() => import("../../components/DrawingBoard"), { ssr: false });
+// import DrawingBoard from '../../components/DrawingBoard';
+
+const DrawingBoard = dynamic(() => import('../../components/DrawingBoard'), { ssr: false });
 const ChatBox = dynamic(() => import("../../components/ChatBox"), { ssr: false });
 
 const isPlayerAlive = (player) => {
-  if ( !player.lastHearthBeatAt || !player.lastInteractedAt ) {
+  if ( !player.lastHeartBeatAt || !player.lastInteractedAt ) {
     return false;
   }
-  let lastHearthBeatAt = Math.max(player.lastHearthBeatAt, player.lastInteractedAt);
-  lastHearthBeatAt = DateTime.fromMillis(lastHearthBeatAt);
-  lastHearthBeatAt.plus({ seconds: 60 });
-  if ( lastHearthBeatAt < DateTime.now() ) {
+  let lastHeartBeatAt = Math.max(player.lastHeartBeatAt, player.lastInteractedAt);
+  lastHeartBeatAt = DateTime.fromMillis(lastHeartBeatAt);
+  lastHeartBeatAt.plus({ seconds: 60 });
+  if ( lastHeartBeatAt < DateTime.now() ) {
     return false;
   }
 };
 
 const isPlayerKickable = (player) => {
-  if ( !player.lastHearthBeatAt || !player.lastInteractedAt ) {
-    return false;
+  if ( !player.lastHeartBeatAt || !player.lastInteractedAt ) {
+    return true;
   }
-  if ( !isPlayerAlive(player) ) {
+  if ( isPlayerAlive(player) ) {
     return false;
   }
   let lastInteractedAt = DateTime.fromMillis(player.lastInteractedAt);
@@ -46,7 +49,7 @@ const isPlayerKickable = (player) => {
 };
 
 const isPlayerActive = (player) => {
-  if ( !player.lastHearthBeatAt || !player.lastInteractedAt ) {
+  if ( !player.lastHeartBeatAt || !player.lastInteractedAt ) {
     return false;
   }
   if ( !isPlayerAlive(player) ) {
@@ -61,10 +64,10 @@ const isPlayerActive = (player) => {
 };
 
 const getPlayerState = (player) => {
-  if ( !player.lastHearthBeatAt || !player.lastInteractedAt ) {
+  if ( !player.lastHeartBeatAt || !player.lastInteractedAt ) {
     return 'dead';
   }
-  if ( isPlayerAlive(player) ) {
+  if ( !isPlayerAlive(player) ) {
     return 'dead';
   }
   if ( isPlayerKickable(player) ) {
@@ -75,24 +78,46 @@ const getPlayerState = (player) => {
   }
 };
 
-function Room({ room }) {
+function Room({ roomObj }) {
 
   const ctx = useContext(AuthContext);
-  const [ players, setPlayers ] = useState(Object.values(room.playing || {}));
-  const [ current, setCurrent ] = useState(room.current || {});
+
+  const [ roomState, setRoomState ] = useState(roomObj);
+  let room = new RoomClass(roomState, ctx.user.id);
+
+  // const [ players, setPlayers ] = useState(Object.values(room.playing || {}));
+
+  let players = Object.values(room.playing || {});
+
+  // const [ current, setCurrent ] = useState(room.current || {});
+
+  let current = room.current;
 
   const playingListRef = useRef(db.ref(`rooms/room_${room.id}/playing`));
   const currentRef = useRef(db.ref(`rooms/room_${room.id}/current`));
 
-  room.playing = room.playing || {};
+  const roomRef = useRef(db.ref(`rooms/room_${room.id}`));
+  // const [ room, setRoom ] = useState();
+
+  // room.playing = room.playing || {};
 
   useEffect(() => {
 
     // let playingListRef = db.ref(`rooms/room_${room.id}/playing`);
-    playingListRef.current.on('value', (snapshot) => {
+    roomRef.current.on('value', (snapshot) => {
       const data = snapshot.val();
-      setPlayers(Object.values(data || {}));
+      setRoomState(data);
     });
+  
+  }, [room.id]);
+
+  useEffect(() => {
+
+    // // let playingListRef = db.ref(`rooms/room_${room.id}/playing`);
+    // playingListRef.current.on('value', (snapshot) => {
+    //   const data = snapshot.val();
+    //   setPlayers(Object.values(data || {}));
+    // });
   
   }, [room.id]);
 
@@ -100,25 +125,26 @@ function Room({ room }) {
 
     // Set current user as logged in
     // check if user already logged in
-    let foundLoggedIn = !!players.find(player => player.id === ctx.user.id);
+    // let foundLoggedIn = !!players.find(player => player.id === ctx.user.id);
+    let foundLoggedIn = room.isCurrentUserLoggedIn();
     if (!foundLoggedIn) {
       let newPlayingUserRef = db.ref(`rooms/room_${room.id}/playing/${ctx.user.id}`);
       newPlayingUserRef.set({
         ...ctx.user,
         currentPoints: 0,
         lastInteractedAt: +new Date(),
-        lastHearthBeatAt: +new Date(),
+        lastHeartBeatAt: +new Date(),
       });
     }
     
-  }, [players]);
+  }, [roomObj.playing]);
 
   useEffect(() => {
 
-    currentRef.current.on('value', (snapshot) => {
-      const data = snapshot.val();
-      setCurrent(data);
-    });
+    // currentRef.current.on('value', (snapshot) => {
+    //   const data = snapshot.val();
+    //   setCurrent(data);
+    // });
   
   }, [room.id]);
 
@@ -126,7 +152,8 @@ function Room({ room }) {
   const cleanPlayersList = () => {
     // kick out dead/kickable players
     players.forEach((player) => {
-      if ( player.id !== ctx.user.id && !isPlayerKickable(player) ) {
+      if ( player.id !== ctx.user.id && !isPlayerAlive(player) ) {
+        console.log("Removing player " + player.id);
         playingListRef.current.child(`${player.id}`).remove();
       }
     });
@@ -198,8 +225,8 @@ function Room({ room }) {
       // console.log(ctx);
       // console.log(ctx.user.id);
 
-      let lastHearthBeatAt = playingListRef.current.child(`${ctx.user.id}/lastHearthBeatAt`);
-      lastHearthBeatAt.set(+new Date());
+      let lastHeartBeatAt = playingListRef.current.child(`${ctx.user.id}/lastHeartBeatAt`);
+      lastHeartBeatAt.set(+new Date());
       cleanPlayersList();
     }, 30000);
 
@@ -213,12 +240,17 @@ function Room({ room }) {
 
   const handleBoardChange = (newLines) => {
     // console.log(currentRef.current);
-    setCurrent({
-      ...current,
-      board: {
-        lines: newLines
-      }
-    });
+    // setCurrent({
+    //   ...current,
+    //   board: {
+    //     lines: newLines
+    //   }
+    // });
+
+    // setRoomState({
+
+    // })
+
     currentRef.current.child('board/lines').set(newLines);
   }
 
@@ -266,10 +298,10 @@ export async function getServerSideProps({ query }) {
   const data=await response.get();
 
   console.log(data.val());
-  let room = data.val();
+  let roomObj = data.val();
 
   // Pass data to the page via props
-  return { props: { room } }
+  return { props: { roomObj } }
 }
 
 
