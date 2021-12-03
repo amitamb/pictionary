@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "cypress": "cypress open"
   },
   "dependencies": {
     "ably": "^1.2.10",
@@ -23,5 +24,8 @@
     "react-konva": "^17.0.2-4",
     "sass": "^1.34.1",
     "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "cypress": "^9.1.0"
   }
 }

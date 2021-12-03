@@ -24,14 +24,6 @@ export const AuthContextProvider = (props) => {
   let userObj;
   if (typeof(localStorage) !== "undefined") {
     userObj = JSON.parse(localStorage['__user'] || 'null');
-  }
-  if (!userObj) {
-    userObj = { username: ''}
-  }
-  const [user, setUser] = useState(userObj);
-
-  useEffect(() => {
-    let userObj = JSON.parse(localStorage['__user'] || 'null');
     if ( !userObj ) {
       // generate username
       let username = generateUsername();
@@ -41,9 +33,30 @@ export const AuthContextProvider = (props) => {
       };
       localStorage['__user'] = JSON.stringify((userObj));
     }
-    setUser(userObj);
+  }
+  else {
+    userObj = { username: ''};
+  }
+  // if (!userObj) {
+  //   userObj = { username: ''}
+  // }
 
-  }, []);
+  const [user, setUser] = useState(userObj);
+
+  // useEffect(() => {
+  //   let userObj = JSON.parse(localStorage['__user'] || 'null');
+  //   if ( !userObj ) {
+  //     // generate username
+  //     let username = generateUsername();
+  //     userObj = {
+  //       id: uuidv4(),
+  //       username
+  //     };
+  //     localStorage['__user'] = JSON.stringify((userObj));
+  //   }
+  //   setUser(userObj);
+
+  // }, []);
 
   const usernameChangeHandler = (username) => {
     let userObj = JSON.parse(localStorage['__user']);

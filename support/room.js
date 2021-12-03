@@ -26,6 +26,11 @@ class Room {
     // console.log(this.playing);
     return !!this.players.find(player => player.id === this.currentUserId);
   }
+
+  setInteractedAt() {
+    let lastInteractedAt = playingListRef.current.child(`${currentUserId}/lastInteractedAt`);
+    lastInteractedAt.set(+new Date());
+  }
 }
 
 export default Room;

@@ -1,22 +1,18 @@
 import Layout from "../../components/Layout";
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-// import CanvasDraw from "react-canvas-draw"
 import { DateTime } from 'luxon';
 import PlayersList from "../../components/PlayersList";
 import AuthContext from '../../store/auth-context';
 import { useContext, useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import db from '../../support/firebase';
-
 import classes from "./[roomId].module.scss";
-
 import dynamic from 'next/dynamic';
-
 import RoomClass from '../../support/room';
 import Player from '../../support/player';
 
-// import DrawingBoard from '../../components/DrawingBoard';
+import useRoom from '../../support/hooks/UseRoom';
 
 const DrawingBoard = dynamic(() => import('../../components/DrawingBoard'), { ssr: false });
 const ChatBox = dynamic(() => import("../../components/ChatBox"), { ssr: false });
@@ -31,21 +27,6 @@ const isPlayerAlive = (player) => {
   if ( lastHeartBeatAt < DateTime.now() ) {
     return false;
   }
-};
-
-const isPlayerKickable = (player) => {
-  if ( !player.lastHeartBeatAt || !player.lastInteractedAt ) {
-    return true;
-  }
-  if ( isPlayerAlive(player) ) {
-    return false;
-  }
-  let lastInteractedAt = DateTime.fromMillis(player.lastInteractedAt);
-  lastInteractedAt.plus({ minutes: 4 });
-  if ( lastInteractedAt < DateTime.now() ) {
-    return false;
-  }
-  return true;
 };
 
 const isPlayerActive = (player) => {
@@ -63,53 +44,14 @@ const isPlayerActive = (player) => {
   return true;
 };
 
-const getPlayerState = (player) => {
-  if ( !player.lastHeartBeatAt || !player.lastInteractedAt ) {
-    return 'dead';
-  }
-  if ( !isPlayerAlive(player) ) {
-    return 'dead';
-  }
-  if ( isPlayerKickable(player) ) {
-    return 'kicked';
-  }
-  if ( isPlayerKickable(player) ) {
-    return 'kicked';
-  }
-};
-
 function Room({ roomObj }) {
 
   const ctx = useContext(AuthContext);
-
-  const [ roomState, setRoomState ] = useState(roomObj);
-  let room = new RoomClass(roomState, ctx.user.id);
-
-  // const [ players, setPlayers ] = useState(Object.values(room.playing || {}));
-
-  let players = Object.values(room.playing || {});
-
-  // const [ current, setCurrent ] = useState(room.current || {});
-
-  let current = room.current;
+  // const [ roomState, setRoomState ] = useState(roomObj);
+  const [room, players, current, handleBoardChange, handleMessageSent] = useRoom(roomObj, ctx.user);
 
   const playingListRef = useRef(db.ref(`rooms/room_${room.id}/playing`));
   const currentRef = useRef(db.ref(`rooms/room_${room.id}/current`));
-
-  const roomRef = useRef(db.ref(`rooms/room_${room.id}`));
-  // const [ room, setRoom ] = useState();
-
-  // room.playing = room.playing || {};
-
-  useEffect(() => {
-
-    // let playingListRef = db.ref(`rooms/room_${room.id}/playing`);
-    roomRef.current.on('value', (snapshot) => {
-      const data = snapshot.val();
-      setRoomState(data);
-    });
-  
-  }, [room.id]);
 
   useEffect(() => {
 
@@ -119,25 +61,7 @@ function Room({ roomObj }) {
     //   setPlayers(Object.values(data || {}));
     // });
   
-  }, [room.id]);
-
-  useEffect(() => {
-
-    // Set current user as logged in
-    // check if user already logged in
-    // let foundLoggedIn = !!players.find(player => player.id === ctx.user.id);
-    let foundLoggedIn = room.isCurrentUserLoggedIn();
-    if (!foundLoggedIn) {
-      let newPlayingUserRef = db.ref(`rooms/room_${room.id}/playing/${ctx.user.id}`);
-      newPlayingUserRef.set({
-        ...ctx.user,
-        currentPoints: 0,
-        lastInteractedAt: +new Date(),
-        lastHeartBeatAt: +new Date(),
-      });
-    }
-    
-  }, [roomObj.playing]);
+  }, [roomObj.id]);
 
   useEffect(() => {
 
@@ -146,7 +70,7 @@ function Room({ roomObj }) {
     //   setCurrent(data);
     // });
   
-  }, [room.id]);
+  }, [roomObj.id]);
 
 
   const cleanPlayersList = () => {
@@ -154,22 +78,7 @@ function Room({ roomObj }) {
     players.forEach((player) => {
       if ( player.id !== ctx.user.id && !isPlayerAlive(player) ) {
         console.log("Removing player " + player.id);
-        playingListRef.current.child(`${player.id}`).remove();
-      }
-    });
-  };
-
-  const handleCurrentPlayerState = () => {
-
-    const graceSeconds = 5;
-
-    // kick out dead/kickable players
-    players.forEach((player) => {
-      
-      if ( player.id !== current.player.id ) {
         // playingListRef.current.child(`${player.id}`).remove();
-        // if ( current.player. )
-        
       }
     });
   };
@@ -178,6 +87,7 @@ function Room({ roomObj }) {
 
     // clear current player if only one/no player remains
     if ( current?.player && players.length <= 1 ) {
+
       let newCurrent = {
         player: null,
         startedAt: null,
@@ -236,29 +146,7 @@ function Room({ roomObj }) {
     return () =>{
       clearInterval(heartbeatIntervalId);
     };
-  }, []);
-
-  const handleBoardChange = (newLines) => {
-    // console.log(currentRef.current);
-    // setCurrent({
-    //   ...current,
-    //   board: {
-    //     lines: newLines
-    //   }
-    // });
-
-    // setRoomState({
-
-    // })
-
-    currentRef.current.child('board/lines').set(newLines);
-  }
-
-  const handleMessageSent = (messageData) => {
-    // let messageText = messageData.data;
-    let lastInteractedAt = playingListRef.current.child(`${ctx.user.id}/lastInteractedAt`);
-    lastInteractedAt.set(+new Date());
-  };
+  }, [roomObj.id]);
 
   return (
     <Layout>
