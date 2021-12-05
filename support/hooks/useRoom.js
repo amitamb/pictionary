@@ -2,17 +2,19 @@ import { useContext, useState, useEffect, useRef } from 'react';
 import RoomClass from '../../support/room';
 import Player from '../../support/player';
 import db from '../../support/firebase';
+import useInterval from './useInterval';
 
 const useRoom = (roomObj, currentUser) => {
 
+  const roomRef = useRef(db.ref(`rooms/room_${roomObj.id}`));
+  const currentRef = useRef(db.ref(`rooms/room_${roomObj.id}/current`));
+  const playingListRef = useRef(db.ref(`rooms/room_${roomObj.id}/playing`));
+
   const [ roomState, setRoomState ] = useState(roomObj);
 
-  let room = new RoomClass(roomState, currentUser.id);
-  let players = Object.values(room.playing || {});
+  let room = new RoomClass(roomState, currentUser, roomRef);
+  let players = room.players;
   let current = room.current;
-
-  const roomRef = useRef(db.ref(`rooms/room_${room.id}`));
-  const currentRef = useRef(db.ref(`rooms/room_${room.id}/current`));
 
   useEffect(() => {
 
@@ -26,31 +28,31 @@ const useRoom = (roomObj, currentUser) => {
 
   useEffect(() => {
 
-    console.log("Running here!!");
-    console.log("currentUser " + currentUser)
-
     // Set current user as logged in
     // check if user already logged in
-    // let foundLoggedIn = !!players.find(player => player.id === ctx.user.id);
-    let foundLoggedIn = room.isCurrentUserLoggedIn();
-
-    console.log(foundLoggedIn);
-
-    if (!foundLoggedIn) {
-      let newPlayingUserRef = db.ref(`rooms/room_${room.id}/playing/${currentUser.id}`);
-      newPlayingUserRef.set({
-        ...currentUser,
-        currentPoints: 0,
-        lastInteractedAt: +new Date(),
-        lastHeartBeatAt: +new Date(),
-      });
+    if ( !room.isCurrentUserLoggedIn() ) {
+      room.loginCurrentUser();
     }
     
   }, [roomObj.playing]);
 
+  useInterval(() => {
+
+    if ( !room.isCurrentUserLoggedIn() ) {
+      room.loginCurrentUser();
+    }
+    else {
+      let lastHeartBeatAt = playingListRef.current.child(`${currentUser.id}/lastHeartBeatAt`);
+      lastHeartBeatAt.set(+new Date());
+    }
+
+    room.cleanPlayersList();
+
+  }, 30000);
+
   const handleMessageSent = (messageData) => {
     // let messageText = messageData.data;
-    let lastInteractedAt = playingListRef.current.child(`${ctx.user.id}/lastInteractedAt`);
+    let lastInteractedAt = playingListRef.current.child(`${currentUser.id}/lastInteractedAt`);
     lastInteractedAt.set(+new Date());
   };
 

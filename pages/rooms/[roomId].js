@@ -12,28 +12,17 @@ import dynamic from 'next/dynamic';
 import RoomClass from '../../support/room';
 import Player from '../../support/player';
 
-import useRoom from '../../support/hooks/UseRoom';
+import useRoom from '../../support/hooks/useRoom';
+import useInterval from '../../support/hooks/useInterval';
 
 const DrawingBoard = dynamic(() => import('../../components/DrawingBoard'), { ssr: false });
 const ChatBox = dynamic(() => import("../../components/ChatBox"), { ssr: false });
-
-const isPlayerAlive = (player) => {
-  if ( !player.lastHeartBeatAt || !player.lastInteractedAt ) {
-    return false;
-  }
-  let lastHeartBeatAt = Math.max(player.lastHeartBeatAt, player.lastInteractedAt);
-  lastHeartBeatAt = DateTime.fromMillis(lastHeartBeatAt);
-  lastHeartBeatAt.plus({ seconds: 60 });
-  if ( lastHeartBeatAt < DateTime.now() ) {
-    return false;
-  }
-};
 
 const isPlayerActive = (player) => {
   if ( !player.lastHeartBeatAt || !player.lastInteractedAt ) {
     return false;
   }
-  if ( !isPlayerAlive(player) ) {
+  if ( !player.isAlive() ) {
     return false;
   }
   let lastInteractedAt = DateTime.fromMillis(player.lastInteractedAt);
@@ -55,36 +44,6 @@ function Room({ roomObj }) {
 
   useEffect(() => {
 
-    // // let playingListRef = db.ref(`rooms/room_${room.id}/playing`);
-    // playingListRef.current.on('value', (snapshot) => {
-    //   const data = snapshot.val();
-    //   setPlayers(Object.values(data || {}));
-    // });
-  
-  }, [roomObj.id]);
-
-  useEffect(() => {
-
-    // currentRef.current.on('value', (snapshot) => {
-    //   const data = snapshot.val();
-    //   setCurrent(data);
-    // });
-  
-  }, [roomObj.id]);
-
-
-  const cleanPlayersList = () => {
-    // kick out dead/kickable players
-    players.forEach((player) => {
-      if ( player.id !== ctx.user.id && !isPlayerAlive(player) ) {
-        console.log("Removing player " + player.id);
-        // playingListRef.current.child(`${player.id}`).remove();
-      }
-    });
-  };
-
-  useEffect(() => {
-
     // clear current player if only one/no player remains
     if ( current?.player && players.length <= 1 ) {
 
@@ -96,16 +55,12 @@ function Room({ roomObj }) {
         }
       };
 
-      // setCurrent(newCurrent);
-
       currentRef?.current?.set(newCurrent);
     }
     else if ( !current?.player && players.length > 1 ) {
       // if nobody is playing currently
       // get first active player from the players list
       let firstActivePlayer = players.find(isPlayerActive);
-
-      // cleanPlayersList();
 
       if (!firstActivePlayer) {
         firstActivePlayer = ctx.user;
@@ -120,8 +75,6 @@ function Room({ roomObj }) {
         }
       };
 
-      // setCurrent(newCurrent);
-
       // let currentRef = db.ref(`rooms/room_${room.id}/current`);
       currentRef?.current?.set(newCurrent);
     }
@@ -129,23 +82,23 @@ function Room({ roomObj }) {
   }, [current?.player, players.length]);
 
   useEffect(() => {
-    let heartbeatIntervalId = setInterval(() => {
+    // let heartbeatIntervalId = setInterval(() => {
 
-      // console.log("Using ctx");
-      // console.log(ctx);
-      // console.log(ctx.user.id);
+    //   // console.log("Using ctx");
+    //   // console.log(ctx);
+    //   // console.log(ctx.user.id);
 
-      let lastHeartBeatAt = playingListRef.current.child(`${ctx.user.id}/lastHeartBeatAt`);
-      lastHeartBeatAt.set(+new Date());
-      cleanPlayersList();
-    }, 30000);
+    //   let lastHeartBeatAt = playingListRef.current.child(`${ctx.user.id}/lastHeartBeatAt`);
+    //   lastHeartBeatAt.set(+new Date());
+    //   cleanPlayersList();
+    // }, 30000);
 
-    cleanPlayersList();
+    room.cleanPlayersList();
 
     // Send heartbeatsat regular intervals
-    return () =>{
-      clearInterval(heartbeatIntervalId);
-    };
+    // return () =>{
+    //   clearInterval(heartbeatIntervalId);
+    // };
   }, [roomObj.id]);
 
   return (
