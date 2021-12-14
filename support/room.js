@@ -2,6 +2,11 @@ import db from './firebase';
 import Player from './player';
 
 class Room {
+
+  static EMPTY = "empty";
+  static WAITING = "waiting";
+  static ACTIVE = "active";
+
   constructor(roomObj, currentUser, roomRef) {
 
     this.currentUser = currentUser;
@@ -26,7 +31,7 @@ class Room {
 
   isCurrentUserLoggedIn() {
     // return !!this.players.find(player => player.id === this.currentUser.id);
-    return !!this.playing[this.currentUser.id];
+    return !!(this.playing[this.currentUser.id] && this.playing[this.currentUser.id].username);
   }
 
   loginCurrentUser() {
@@ -52,6 +57,23 @@ class Room {
       }
     });
   };
+
+  get currentState() {
+    let players = this.players;
+    if ( players.length == 0 ) {
+      return Room.EMPTY;
+    }
+    else if ( players.length == 1 ) {
+      return Room.WAITING;
+    }
+    else {
+      return Room.ACTIVE;
+    }
+  }
+
+  isCurrentUserCurrentPlayer() {
+    return this.current?.player?.id == this.currentUser.id;
+  }
 
   setInteractedAt() {
     let lastInteractedAt = playingListRef.current.child(`${currentUser.id}/lastInteractedAt`);

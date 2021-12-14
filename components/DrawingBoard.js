@@ -78,7 +78,7 @@ function DrawingBoard({ canDraw, board = {}, onChange }) {
       >
         <Layer>
           { canDraw && <Text text="Just start drawing" x={5} y={30} /> }
-          { !canDraw && <Text text="Wait for others" x={5} y={30} /> }
+          {/* { !canDraw && <Text text="Wait for others" x={5} y={30} /> } */}
           {lines.map((line, i) => (
             <Line
               key={i}

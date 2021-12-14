@@ -15,6 +15,7 @@ import Player from '../../support/player';
 import useRoom from '../../support/hooks/useRoom';
 import useInterval from '../../support/hooks/useInterval';
 
+const BoardContainer = dynamic(() => import('../../components/BoardContainer'), { ssr: false });
 const DrawingBoard = dynamic(() => import('../../components/DrawingBoard'), { ssr: false });
 const ChatBox = dynamic(() => import("../../components/ChatBox"), { ssr: false });
 
@@ -37,7 +38,7 @@ function Room({ roomObj }) {
 
   const ctx = useContext(AuthContext);
   // const [ roomState, setRoomState ] = useState(roomObj);
-  const [room, players, current, handleBoardChange, handleMessageSent] = useRoom(roomObj, ctx.user);
+  const [room, players, current, handleWordSelect, handleBoardChange, handleMessageSent] = useRoom(roomObj, ctx.user);
 
   const playingListRef = useRef(db.ref(`rooms/room_${room.id}/playing`));
   const currentRef = useRef(db.ref(`rooms/room_${room.id}/current`));
@@ -49,6 +50,9 @@ function Room({ roomObj }) {
 
       let newCurrent = {
         player: null,
+        state: null,
+        lastStateChangeAt: null,
+        selectedWord: null,
         startedAt: null,
         board: {
           lines: []
@@ -69,6 +73,9 @@ function Room({ roomObj }) {
       let newCurrent = {
         ...current,
         player: firstActivePlayer,
+        state: "selecting",
+        lastStateChangeAt: +new Date(),
+        selectedWord: null,
         startedAt: +new Date(),
         board: {
           lines: []
@@ -113,7 +120,8 @@ function Room({ roomObj }) {
           </span>
         </Col>
         <Col xs={8}>
-          <DrawingBoard canDraw={current?.player?.id == ctx.user.id} board={current?.board} onChange={handleBoardChange} />
+          <BoardContainer room={room} currentUser={ctx.user} onWordSelect={handleWordSelect} onBoardChange={handleBoardChange} />
+          {/* <DrawingBoard canDraw={current?.player?.id == ctx.user.id} board={current?.board} onChange={handleBoardChange} /> */}
         </Col>
         <Col>
           <div className="d-flex flex-column" style={{ height: '100%' }}>

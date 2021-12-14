@@ -72,7 +72,30 @@ const useRoom = (roomObj, currentUser) => {
     currentRef.current.child('board/lines').set(newLines);
   }
 
-  return [room, players, current, handleBoardChange, handleMessageSent];
+  const handleWordSelect = (selecedWord) => {
+
+
+    if ( room.isCurrentUserCurrentPlayer() ) {
+
+      let newCurrent = {
+        ...current,
+        state: "drawing",
+        lastStateChangeAt: +new Date(),
+        selectedWord: selecedWord,
+        board: {
+          lines: []
+        }
+      };
+
+      currentRef?.current?.set(newCurrent);
+
+      // console.log("handleWordSelect");s
+
+    }
+
+  }
+
+  return [room, players, current, handleWordSelect, handleBoardChange, handleMessageSent];
 }
 
 export default useRoom;
