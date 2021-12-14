@@ -24,7 +24,7 @@ const useRoom = (roomObj, currentUser) => {
       setRoomState(data);
     });
   
-  }, [roomObj.id]);
+  }, [roomState.id]);
 
   useEffect(() => {
 
@@ -34,7 +34,33 @@ const useRoom = (roomObj, currentUser) => {
       room.loginCurrentUser();
     }
     
-  }, [roomObj.playing]);
+  }, [roomState.playing]); // TODO: Check this
+
+  useEffect(() => {
+
+    // Set current user as logged in
+    // check if user already logged in
+    if ( room.pendingTime < 0 ) {
+      room.selectNextPlayer();
+    }
+    
+  }, [roomState.pendingTime]); // TODO: Check this
+
+  useInterval(() => {  
+  
+    if ( room.isCurrentUserCurrentPlayer() ) {
+
+      
+      // room.pendingTime = pendingTime;
+      
+      setRoomState({
+        ...roomState,
+        pendingTime: room.getPendingTime()
+      })
+
+    }
+
+  }, 500);
 
   useInterval(() => {
 

@@ -17,6 +17,8 @@ class Room {
     this.id = roomObj.id;
     this.name = roomObj.name;
     this.playing = roomObj.playing || {};
+
+    this.pendingTime = roomObj.pendingTime || this.getPendingTime();
   }
 
   get players() {
@@ -28,6 +30,10 @@ class Room {
   get dbRef() {
     return db.ref(`rooms/room_${this.id}`);
   };
+
+  get currentPlayer(){
+    return this?.playing[this.current?.player?.id];
+  }
 
   isCurrentUserLoggedIn() {
     // return !!this.players.find(player => player.id === this.currentUser.id);
@@ -58,6 +64,70 @@ class Room {
     });
   };
 
+  getPendingTime() {
+
+    let maxTime = 0;
+
+    if ( this.currentPlayerState == "selecting" ) {
+      maxTime = 20000;
+    }
+    else if ( this.currentPlayerState == "drawing" ) {
+      maxTime = 60000;
+    }
+    else {
+      // alert("Error LD90256");
+      // return ;
+      console.error("Wrong this.currentPlayerState");
+    }
+
+    let pendingTime = (this.current?.lastStateChangeAt + maxTime) - (+new Date());
+
+    return pendingTime;
+  }
+
+  selectNextPlayer() {
+
+    let players = this.players;
+    let currentPlayer = this.currentPlayer;
+    let newCurrentPlayer = null;
+
+    // Don't do anything if less than 2 players
+    if ( players.length < 2 ) {
+      return false;
+    }
+
+    if ( !currentPlayer ) {
+      // select first player
+      // TODO: Filter for active players
+      newCurrentPlayer = this.playing[players[0].id];
+    }
+    else {
+      let currentPlayerIndex = players.findIndex((player) => player.id == currentPlayer.id);
+      let newPlayerIndex = currentPlayerIndex + 1;
+      if ( newPlayerIndex >= players.length ) {
+        newPlayerIndex = 0;
+      }
+      newCurrentPlayer = this.playing[players[newPlayerIndex].id];
+    }
+
+    let newCurrent = {
+      ...this.current,
+      player: newCurrentPlayer,
+      state: "selecting",
+      lastStateChangeAt: +new Date(),
+      selectedWord: null,
+      startedAt: +new Date(),
+      board: {
+        lines: []
+      }
+    };
+
+    console.log(newCurrent);
+
+    this.dbRef.child('current').set(newCurrent);
+
+  }
+
   get currentState() {
     let players = this.players;
     if ( players.length == 0 ) {
@@ -69,6 +139,10 @@ class Room {
     else {
       return Room.ACTIVE;
     }
+  }
+
+  get currentPlayerState() {
+    return this.current?.state;
   }
 
   isCurrentUserCurrentPlayer() {

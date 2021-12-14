@@ -60,30 +60,35 @@ function Room({ roomObj }) {
       };
 
       currentRef?.current?.set(newCurrent);
+
     }
     else if ( !current?.player && players.length > 1 ) {
-      // if nobody is playing currently
-      // get first active player from the players list
-      let firstActivePlayer = players.find(isPlayerActive);
 
-      if (!firstActivePlayer) {
-        firstActivePlayer = ctx.user;
-      }
+      // // if nobody is playing currently
+      // // get first active player from the players list
+      // let firstActivePlayer = players.find(isPlayerActive);
 
-      let newCurrent = {
-        ...current,
-        player: firstActivePlayer,
-        state: "selecting",
-        lastStateChangeAt: +new Date(),
-        selectedWord: null,
-        startedAt: +new Date(),
-        board: {
-          lines: []
-        }
-      };
+      // if (!firstActivePlayer) {
+      //   firstActivePlayer = ctx.user;
+      // }
 
-      // let currentRef = db.ref(`rooms/room_${room.id}/current`);
-      currentRef?.current?.set(newCurrent);
+      // let newCurrent = {
+      //   ...current,
+      //   player: firstActivePlayer,
+      //   state: "selecting",
+      //   lastStateChangeAt: +new Date(),
+      //   selectedWord: null,
+      //   startedAt: +new Date(),
+      //   board: {
+      //     lines: []
+      //   }
+      // };
+
+      // // let currentRef = db.ref(`rooms/room_${room.id}/current`);
+      // currentRef?.current?.set(newCurrent);
+
+      room.selectNextPlayer();
+
     }
     
   }, [current?.player, players.length]);
@@ -108,6 +113,22 @@ function Room({ roomObj }) {
     // };
   }, [roomObj.id]);
 
+  const pendingTimeSpan = () => {
+
+    if ( room.isCurrentUserCurrentPlayer() ) {
+      let secondPending = Math.floor(room.pendingTime / 1000);
+      return (
+        <span className={classes.pendingSeconds}>
+          {secondPending} seconds remaining
+        </span>
+      );
+    }
+    else {
+      return null;
+    }
+
+  };
+
   return (
     <Layout>
       <Row>
@@ -118,6 +139,7 @@ function Room({ roomObj }) {
             { players.length <= 1 && <span>Not enough players</span> }
             { players.length > 1 && <span>{players.length} players playing</span> }
           </span>
+          {pendingTimeSpan()}
         </Col>
         <Col xs={8}>
           <BoardContainer room={room} currentUser={ctx.user} onWordSelect={handleWordSelect} onBoardChange={handleBoardChange} />
