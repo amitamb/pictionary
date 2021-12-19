@@ -1,0 +1,102 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Home renders homepage unchanged 1`] = `
+<div>
+  <div
+    className="Layout"
+    style={
+      Object {
+        "display": "flex",
+        "flexDirection": "column",
+        "height": "100%",
+        "width": "100%",
+      }
+    }
+  >
+    <div
+      className="Content"
+      style={
+        Object {
+          "display": "flex",
+          "flex": 1,
+          "flexDirection": "column",
+        }
+      }
+    >
+      <div
+        className="container"
+      >
+        <div
+          className="row"
+        >
+          <div
+            className="col"
+          >
+            <div
+              className="justify-content-md-center mt-4 row"
+            >
+              <div
+                className="col-sm-6 col-12"
+              >
+                <div
+                  className="mb-3 row"
+                >
+                  <div
+                    className="col-6"
+                  >
+                    <button
+                      className="btn btn-primary btn-block btn-lg"
+                      disabled={false}
+                      type="button"
+                    >
+                      Quick Join
+                    </button>
+                  </div>
+                  <div
+                    className="col"
+                  >
+                    <button
+                      className="btn btn-secondary btn-block btn-lg"
+                      disabled={false}
+                      type="button"
+                    >
+                      Create Room
+                    </button>
+                  </div>
+                </div>
+                <div
+                  className="row"
+                >
+                  <div
+                    className="col"
+                  >
+                    <h3
+                      className="text-center"
+                    >
+                      Join any of the following public rooms
+                    </h3>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="NavBar"
+      style={
+        Object {
+          "backgroundColor": "red",
+          "color": "white",
+          "display": "none",
+          "height": "60px",
+          "width": "100%",
+        }
+      }
+    >
+      NAVBAR
+    </div>
+  </div>
+</div>
+`;

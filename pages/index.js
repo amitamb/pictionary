@@ -11,8 +11,11 @@ import Button from 'react-bootstrap/Button';
 
 import { useState, useEffect } from 'react';
 import db from '../support/firebase';
+import Router from 'next/router'
 
 function Home({ rooms }) {
+
+  rooms ||= [];
 
   const fetchRooms = async () => {
     
@@ -22,18 +25,27 @@ function Home({ rooms }) {
     fetchRooms();
   }, []);
 
+  const handleQuickJoin = () => {
+    let roomNumber = Math.floor(Math.random() * 4) + 1;
+    Router.push(`/rooms/${roomNumber}`);
+  }
+
+  const handleCreateRoom = () => { 
+    alert("Can not create rooms at present.");
+  }
+
   return (
     <Layout>
       <Row className="justify-content-md-center mt-4">
         <Col xs={12} sm={6}>
           <Row className="mb-3">
             <Col xs={6}>
-              <Button variant="primary" size="lg" block>
+              <Button variant="primary" size="lg" block onClick={handleQuickJoin}>
                 Quick Join
               </Button>
             </Col>
             <Col>
-              <Button variant="secondary" size="lg" block>
+              <Button variant="secondary" size="lg" block onClick={handleCreateRoom}>
               Create Room
               </Button>
             </Col>
