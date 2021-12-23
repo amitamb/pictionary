@@ -35,6 +35,10 @@ class Player {
     return true;
   }
 
+  remove() {
+    this.dbRef.remove();
+  }
+
   sendAliveSignal() {
   }
 

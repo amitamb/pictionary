@@ -3,6 +3,7 @@ import RoomClass from '../../support/room';
 import Player from '../../support/player';
 import db from '../../support/firebase';
 import useInterval from './useInterval';
+import Room from '../../support/room';
 
 const useRoom = (roomObj, currentUser) => {
 
@@ -20,11 +21,22 @@ const useRoom = (roomObj, currentUser) => {
 
     // let playingListRef = db.ref(`rooms/room_${room.id}/playing`);
     roomRef.current.on('value', (snapshot) => {
+
+      // if ( window.__set_by_firebase ) {
+      //   let diff = (+new Date()) - window.__set_by_firebase;
+      //   console.log("Received in app in ", diff);
+      //   window.__set_by_firebase = null;
+      // }
+
       const data = snapshot.val();
       setRoomState(data);
     });
   
   }, [roomState.id]);
+
+  useEffect(() => {
+    room.cleanup();
+  }, []);
 
   useEffect(() => {
 
@@ -76,10 +88,41 @@ const useRoom = (roomObj, currentUser) => {
 
   }, 30000);
 
+  // Handle user/timed actions by current user
+
+  const handleHeartBeat = () => {
+
+  };
+
+  const handleSelectedPlayerEvents = (event) => {
+
+    switch(event.type) {
+      case Room.SELECTED:
+        console.log("User selected a word.");
+        break;
+      case Room.SELECT_TIMEOUT:
+        console.log("Select timed out.");
+        break;
+      case Room.COMPLETED:
+        console.log("Completed drawing phase as all users guessed");
+        break;
+      case Room.DRAW_TIMEOUT:
+        console.log("Draw timeout");
+        break;
+      default:
+        // code block
+    }
+
+  };
+
   const handleMessageSent = (messageData) => {
     // let messageText = messageData.data;
     let lastInteractedAt = playingListRef.current.child(`${currentUser.id}/lastInteractedAt`);
     lastInteractedAt.set(+new Date());
+
+    if ( !room.isCurrentUserCurrentPlayer() && !room.hasGuessedByUser(currentUser.id) ) {
+      room.tryWordGuessed(messageData?.data?.text);
+    }
   };
 
   const handleBoardChange = (newLines) => {
@@ -95,6 +138,9 @@ const useRoom = (roomObj, currentUser) => {
 
     // })
 
+    // window.__set_by_firebase = +new Date();
+    // console.log("Set by firebase");
+
     currentRef.current.child('board/lines').set(newLines);
   }
 
@@ -108,6 +154,7 @@ const useRoom = (roomObj, currentUser) => {
         state: "drawing",
         lastStateChangeAt: +new Date(),
         selectedWord: selecedWord,
+        guessedBy: [],
         board: {
           lines: []
         }
@@ -121,7 +168,7 @@ const useRoom = (roomObj, currentUser) => {
 
   }
 
-  return [room, players, current, handleWordSelect, handleBoardChange, handleMessageSent];
+  return [room, players, current, handleWordSelect, handleBoardChange, handleMessageSent, handleSelectedPlayerEvents];
 }
 
 export default useRoom;

@@ -38,7 +38,7 @@ function Room({ roomObj }) {
 
   const ctx = useContext(AuthContext);
   // const [ roomState, setRoomState ] = useState(roomObj);
-  const [room, players, current, handleWordSelect, handleBoardChange, handleMessageSent] = useRoom(roomObj, ctx.user);
+  const [room, players, current, handleWordSelect, handleBoardChange, handleMessageSent, handleSelectedPlayerEvents] = useRoom(roomObj, ctx.user);
 
   const playingListRef = useRef(db.ref(`rooms/room_${room.id}/playing`));
   const currentRef = useRef(db.ref(`rooms/room_${room.id}/current`));
@@ -53,6 +53,7 @@ function Room({ roomObj }) {
         state: null,
         lastStateChangeAt: null,
         selectedWord: null,
+        guessedBy: [],
         startedAt: null,
         board: {
           lines: []
@@ -64,29 +65,6 @@ function Room({ roomObj }) {
     }
     else if ( !current?.player && players.length > 1 ) {
 
-      // // if nobody is playing currently
-      // // get first active player from the players list
-      // let firstActivePlayer = players.find(isPlayerActive);
-
-      // if (!firstActivePlayer) {
-      //   firstActivePlayer = ctx.user;
-      // }
-
-      // let newCurrent = {
-      //   ...current,
-      //   player: firstActivePlayer,
-      //   state: "selecting",
-      //   lastStateChangeAt: +new Date(),
-      //   selectedWord: null,
-      //   startedAt: +new Date(),
-      //   board: {
-      //     lines: []
-      //   }
-      // };
-
-      // // let currentRef = db.ref(`rooms/room_${room.id}/current`);
-      // currentRef?.current?.set(newCurrent);
-
       room.selectNextPlayer();
 
     }
@@ -94,23 +72,9 @@ function Room({ roomObj }) {
   }, [current?.player, players.length]);
 
   useEffect(() => {
-    // let heartbeatIntervalId = setInterval(() => {
-
-    //   // console.log("Using ctx");
-    //   // console.log(ctx);
-    //   // console.log(ctx.user.id);
-
-    //   let lastHeartBeatAt = playingListRef.current.child(`${ctx.user.id}/lastHeartBeatAt`);
-    //   lastHeartBeatAt.set(+new Date());
-    //   cleanPlayersList();
-    // }, 30000);
 
     room.cleanPlayersList();
 
-    // Send heartbeatsat regular intervals
-    // return () =>{
-    //   clearInterval(heartbeatIntervalId);
-    // };
   }, [roomObj.id]);
 
   const pendingTimeSpan = () => {
@@ -143,7 +107,6 @@ function Room({ roomObj }) {
         </Col>
         <Col xs={8}>
           <BoardContainer room={room} currentUser={ctx.user} onWordSelect={handleWordSelect} onBoardChange={handleBoardChange} />
-          {/* <DrawingBoard canDraw={current?.player?.id == ctx.user.id} board={current?.board} onChange={handleBoardChange} /> */}
         </Col>
         <Col>
           <div className="d-flex flex-column" style={{ height: '100%' }}>

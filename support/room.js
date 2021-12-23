@@ -7,6 +7,14 @@ class Room {
   static WAITING = "waiting";
   static ACTIVE = "active";
 
+  static SELECTING = "selecting";
+  static DRAWING = "drawing";
+
+  static STELECTED = "selected";
+  static COMPLETED = "completed";
+  static SELECT_TIMEOUT = "select_timeout";
+  static DRAW_TIMEOUT = "draw_timeout";
+
   constructor(roomObj, currentUser, roomRef) {
 
     this.currentUser = currentUser;
@@ -19,6 +27,7 @@ class Room {
     this.playing = roomObj.playing || {};
 
     this.pendingTime = roomObj.pendingTime || this.getPendingTime();
+
   }
 
   get players() {
@@ -33,6 +42,32 @@ class Room {
 
   get currentPlayer(){
     return this?.playing[this.current?.player?.id];
+  }
+
+  hasGuessedByUser(userId) {
+    let gussedBy = this.current?.guessedBy || [];
+    if ( gussedBy.includes(userId) ) {
+      return true;
+    }
+    return false;
+  }
+
+  tryWordGuessed(word) {
+
+    let gussedBy = this.current?.guessedBy || [];
+    let selectedWord = this.current?.selectedWord || null;
+    if ( selectedWord ) {
+      // Use better function
+      if ( selectedWord.toLowerCase() == word.toLowerCase() ) {
+
+        let gussedByRef = this.dbRef.child(`current/guessedBy`);
+        gussedByRef.set([...gussedBy, this.currentUser.id]);
+
+        return true;
+      }
+    }
+    return false;
+
   }
 
   isCurrentUserLoggedIn() {
@@ -59,10 +94,24 @@ class Room {
     this.players.forEach((player) => {
       if ( player.id !== this.currentUser.id && !player.isAlive() ) {
         console.log("Removing player " + player.id + " " + player.username);
-        player.dbRef.remove();
+
+        player.remove();
+        // player.dbRef.remove();
       }
     });
   };
+
+  clearCurrentPlayer(newCurrentPlayer) {
+    
+  }
+
+  cleanup() {
+    // Check for different odd states that room might get and resolve them
+    // A player is inactive/removed but still current player
+    if ( this.current?.player?.id && this.playing[this.current?.player?.id] == null ) {
+      selectNextPlayer();
+    }
+  }
 
   getPendingTime() {
 
@@ -103,6 +152,11 @@ class Room {
     }
     else {
       let currentPlayerIndex = players.findIndex((player) => player.id == currentPlayer.id);
+
+      if ( !currentPlayerIndex ) {
+        currentPlayerIndex = 0;
+      }
+
       let newPlayerIndex = currentPlayerIndex + 1;
       if ( newPlayerIndex >= players.length ) {
         newPlayerIndex = 0;
