@@ -4,8 +4,22 @@ import Player from '../../support/player';
 import db from '../../support/firebase';
 import useInterval from './useInterval';
 import Room from '../../support/room';
+import { v4 as uuidv4 } from 'uuid';
+import { useChannel } from "../../hooks/AblyReactEffect";
 
 const useRoom = (roomObj, currentUser) => {
+
+  const [channel, ably] = useChannel(roomObj.id, (messagePayload) => {
+    // Here we're computing the state that'll be drawn into the message history
+    // We do that by slicing the last 199 messages from the receivedMessages buffer
+
+    // const history = messages.slice(-199);
+    // setMessages([...history, messagePayload.data]);
+
+    // Then finally, we take the message history, and combine it with the new message
+    // This means we'll always have up to 199 message + 1 new message, stored using the
+    // setMessages react useState hook
+  });
 
   const roomRef = useRef(db.ref(`rooms/room_${roomObj.id}`));
   const currentRef = useRef(db.ref(`rooms/room_${roomObj.id}/current`));
@@ -91,7 +105,19 @@ const useRoom = (roomObj, currentUser) => {
   // Handle user/timed actions by current user
 
   const handleHeartBeat = () => {
+    
+  };
 
+  const handleGuessedCorrectly = () => {
+    let newMessage ={
+      from: currentUser.username,
+      id: uuidv4(),
+      eventType: "user-event",
+      text: "guesed correctly."
+    }
+
+    let messageData = { name: "board-event", data: newMessage };
+    channel.publish(messageData);
   };
 
   const handleSelectedPlayerEvents = (event) => {
@@ -123,6 +149,7 @@ const useRoom = (roomObj, currentUser) => {
     if ( !room.isCurrentUserCurrentPlayer() && !room.hasGuessedByUser(currentUser.id) ) {
       if ( room.tryWordGuessed(messageData?.data?.text) ) {
         
+        handleGuessedCorrectly();
         if ( room.hasGuesedByAll() ) {
           room.selectNextPlayer()
         }

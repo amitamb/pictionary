@@ -8,6 +8,7 @@ import Button from 'react-bootstrap/Button';
 import React, { useContext, useState, useEffect } from 'react';
 import ChatInput from './ChatInput';
 import ChatMessage from './ChatMessage';
+import EventMessage from './EventMessage';
 
 import { useChannel } from "../hooks/AblyReactEffect";
 
@@ -15,6 +16,8 @@ const ChatBox = ({ room, onMessageSent }) => {
 
   const ctx = useContext(AuthContext);
   const [ messages, setMessages ] = useState(room.messages || []);
+
+  // console.log(messages);
 
   useEffect(() => {
 
@@ -36,6 +39,7 @@ const ChatBox = ({ room, onMessageSent }) => {
     let newMessage ={
       from: ctx.user.username,
       id: uuidv4(),
+      eventType: "user-message",
       text: messageText
     }
 
@@ -49,9 +53,12 @@ const ChatBox = ({ room, onMessageSent }) => {
   return (
     <div className={classes.ChatBox}>
       <div className={classes.MessagesContainer}>
-        {messages.map(message => (
-          <ChatMessage key={message.id} message={message} />
-        ))}
+        {messages.map( (message) => {
+          return <>
+            { message.eventType == "user-event" && <EventMessage key={message.id} message={message} /> }
+            { true && <ChatMessage key={message.id} message={message} /> }
+          </>
+        })}
       </div>
       <ChatInput onMessageSubmit={messageSubmitHandler} />
     </div>
