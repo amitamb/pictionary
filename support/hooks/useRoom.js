@@ -121,7 +121,13 @@ const useRoom = (roomObj, currentUser) => {
     lastInteractedAt.set(+new Date());
 
     if ( !room.isCurrentUserCurrentPlayer() && !room.hasGuessedByUser(currentUser.id) ) {
-      room.tryWordGuessed(messageData?.data?.text);
+      if ( room.tryWordGuessed(messageData?.data?.text) ) {
+        
+        if ( room.hasGuesedByAll() ) {
+          room.selectNextPlayer()
+        }
+
+      }
     }
   };
 

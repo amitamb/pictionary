@@ -52,6 +52,17 @@ class Room {
     return false;
   }
 
+  hasGuesedByAll() {
+    let gussedBy = this.current?.guessedBy || [];
+    let remainingToGuess = this.players.some((player) => {
+      if ( player.id == this.currentPlayer?.id ) {
+        return false;
+      }
+      return gussedBy.includes(player.id);
+    })
+    return !remainingToGuess;
+  }
+
   tryWordGuessed(word) {
 
     let gussedBy = this.current?.guessedBy || [];
