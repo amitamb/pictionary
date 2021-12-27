@@ -8,7 +8,7 @@ function EventMessage({ message }) {
   return (
     <div className={classes.EventMessage}>
       <span className="from">
-        {message.from} :
+        {message.from}
       </span>
       &nbsp;
       <span className="text">

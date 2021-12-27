@@ -35,6 +35,10 @@ class Player {
     return true;
   }
 
+  addPoints(points) {
+    this.dbRef.child('currentPoints').set(this.currentPoints + points);
+  }
+
   remove() {
     this.dbRef.remove();
   }

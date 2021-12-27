@@ -8,7 +8,7 @@ const PlayerRow = ({ player }) => {
         {player.username}
       </span>
       <span className="points">
-        {player.points || 0}
+        {player.currentPoints || 0}
       </span>
       <span className="status">
         {player.status}

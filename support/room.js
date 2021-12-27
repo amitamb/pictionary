@@ -44,6 +44,10 @@ class Room {
     return this?.playing[this.current?.player?.id];
   }
 
+  getPlayerById(playerId) {
+    return new Player(this, this.playing[playerId]);
+  }
+
   hasGuessedByUser(userId) {
     let gussedBy = this.current?.guessedBy || [];
     if ( gussedBy.includes(userId) ) {
@@ -58,7 +62,10 @@ class Room {
       if ( player.id == this.currentPlayer?.id ) {
         return false;
       }
-      return gussedBy.includes(player.id);
+      if ( player.id == this.currentUser.id ) {
+        return false;
+      }
+      return !gussedBy.includes(player.id);
     })
     return !remainingToGuess;
   }
@@ -73,6 +80,9 @@ class Room {
 
         let gussedByRef = this.dbRef.child(`current/guessedBy`);
         gussedByRef.set([...gussedBy, this.currentUser.id]);
+
+        let player = this.getPlayerById(this.currentUser.id);
+        player.addPoints(30);
 
         return true;
       }

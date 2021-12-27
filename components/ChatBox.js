@@ -56,7 +56,7 @@ const ChatBox = ({ room, onMessageSent }) => {
         {messages.map( (message) => {
           return <>
             { message.eventType == "user-event" && <EventMessage key={message.id} message={message} /> }
-            { true && <ChatMessage key={message.id} message={message} /> }
+            { message.eventType == "user-message" && <ChatMessage key={message.id} message={message} /> }
           </>
         })}
       </div>
