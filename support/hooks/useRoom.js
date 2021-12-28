@@ -27,7 +27,7 @@ const useRoom = (roomObj, currentUser) => {
 
   const [ roomState, setRoomState ] = useState(roomObj);
 
-  let room = new RoomClass(roomState, currentUser, roomRef);
+  let room = new RoomClass(roomState, currentUser, roomRef, channel);
   let players = room.players;
   let current = room.current;
 
@@ -195,7 +195,17 @@ const useRoom = (roomObj, currentUser) => {
 
       currentRef?.current?.set(newCurrent);
 
-      // console.log("handleWordSelect");s
+      // console.log("handleWordSelect");
+
+      let newMessage ={
+        from: currentUser.username,
+        id: uuidv4(),
+        eventType: "user-event",
+        text: "is drawing."
+      }
+  
+      let messageData = { name: "board-event", data: newMessage };
+      channel.publish(messageData);  
 
     }
 

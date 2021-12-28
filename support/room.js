@@ -1,5 +1,6 @@
 import db from './firebase';
 import Player from './player';
+import { v4 as uuidv4 } from 'uuid';
 
 class Room {
 
@@ -15,7 +16,7 @@ class Room {
   static SELECT_TIMEOUT = "select_timeout";
   static DRAW_TIMEOUT = "draw_timeout";
 
-  constructor(roomObj, currentUser, roomRef) {
+  constructor(roomObj, currentUser, roomRef, channel) {
 
     this.currentUser = currentUser;
     this.roomRef = roomRef;
@@ -25,6 +26,8 @@ class Room {
     this.id = roomObj.id;
     this.name = roomObj.name;
     this.playing = roomObj.playing || {};
+
+    this.channel = channel;
 
     this.pendingTime = roomObj.pendingTime || this.getPendingTime();
 
@@ -197,7 +200,17 @@ class Room {
       }
     };
 
-    console.log(newCurrent);
+    // console.log(newCurrent);
+
+    let newMessage ={
+      from: this.currentUser.username,
+      id: uuidv4(),
+      eventType: "user-event",
+      text: "selecting a word."
+    }
+
+    let messageData = { name: "board-event", data: newMessage };
+    this.channel.publish(messageData);
 
     this.dbRef.child('current').set(newCurrent);
 
